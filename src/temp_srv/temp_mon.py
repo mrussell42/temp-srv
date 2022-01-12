@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import plotly.express as px
+import plotly.graph_objects as go
 import plotly
 import pandas as pd
 import numpy as np
@@ -63,11 +64,20 @@ def submit():
 @app.route('/plot/<name>')
 def plot(name=None):
     # df = gen_data(3000)
-    q = Temperature.query.filter_by(device_id=name)
-    df = pd.read_sql(q.statement, q.session.bind)
-    fig = px.line(df, x='dev_datetime', y='value')
-    fig.update_traces(mode='markers+lines')
-    
+    fig = go.Figure()
+    if name.lower() == "all":
+        for chan in (91,92):
+            q = Temperature.query.filter_by(device_id=chan)
+            df = pd.read_sql(q.statement, q.session.bind)
+            line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=str(chan))
+            fig.add_trace(line)
+            
+    else:             
+        q = Temperature.query.filter_by(device_id=name)
+        df = pd.read_sql(q.statement, q.session.bind)
+        fig = px.line(df, x='dev_datetime', y='value')
+        fig.update_traces(mode='markers+lines')
+        
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('plot.html', name=name, graphJSON=graphJSON)
 
