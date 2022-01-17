@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly
 import pandas as pd
-import numpy as np
+
 
 import json
 
@@ -14,11 +14,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-
-def gen_data(n):
-    df = pd.DataFrame({'Time': [datetime(2021, 1, 1) + timedelta(days=t) for t in range(n)],
-                       'Temperature': [20 * np.sin(t * 0.0314) for t in range(n)]})
-    return df
 
                      
 class Temperature(db.Model):
@@ -82,5 +77,3 @@ def plot(name=None):
     return render_template('plot.html', name=name, graphJSON=graphJSON)
 
 
-def hello_world():
-    return 'Hello, World!'
