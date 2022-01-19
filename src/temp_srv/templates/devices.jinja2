@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+  <div class="container">
+  <h1>Available Devices</h1>
+    {% for device in devices %}
+    <ul id="user.username">
+      <li>
+        <span class="field-name">Device</span>
+        <span class="field-value">{{ device.id }}</span>
+      </li>
+      <li>
+        <span class="field-name">Location:</span>
+        <span class="field-value">{{ device.name }}</span>
+      </li>
+
+      </li>
+    </ul>
+    {% endfor %}
+  </div>
+
+{% endblock %}

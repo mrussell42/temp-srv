@@ -26,3 +26,8 @@ class Device(db.Model):
     name = db.Column(db.String(80), nullable=False)
     temperatures = db.relationship("Temperature", back_populates="device")
     
+
+def get_channels_dict():
+    q = Device.query.all()
+    channels = {ch.id:ch.name for ch in q}
+    return channels

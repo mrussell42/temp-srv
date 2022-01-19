@@ -2,18 +2,16 @@
 from flask import current_app as app
 from . import db
 
-from flask import Flask, request, render_template
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, render_template, redirect, url_for
 from datetime import datetime, timedelta
-import plotly.express as px
-import plotly.graph_objects as go
 import plotly
-import pandas as pd
 
+from .plotlydash.plots import make_plot
 
 import json
 
-from .models import Temperature
+from .models import Temperature, Device
+from .forms import DeviceForm
 
 
 @app.route('/')
@@ -41,30 +39,14 @@ def submit():
     
     return "Success"
 
-
-@app.route('/plot')
 @app.route('/plot/<name>')
 def plot(name=None):
     # df = gen_data(3000)
-    fig1 = go.Figure()
-    fig2 = go.Figure()
-    if name.lower() == "all":
-        for chan in (91,92):
-            line1 = make_line(chan)
-            fig1.add_trace(line1)
-            line2 = make_line(chan, start=datetime.now() - timedelta(days=1))
-            fig2.add_trace(line2)
-            
-    else:             
-        line1 = make_line(name)
-        fig1.add_trace(line1)
-        line2 = make_line(name, start=datetime.now() - timedelta(days=1))
-        fig2.add_trace(line2)
-    
+    fig1 = make_plot(name)
+    fig2 = make_plot(name, start=datetime.now() - timedelta(days=1))
     fig1.update_layout(width=2000, height=1000)
     fig2.update_layout(width=2000, height=1000, title="Last 24 Hours")
-    
-        
+  
     graphJSON1 = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
     graphJSON2 = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('plot.html', 
@@ -73,15 +55,45 @@ def plot(name=None):
                            graphJSON2=graphJSON2)
 
 
-
-def make_line(chan, start=None, stop=None):
-    q = Temperature.query.filter_by(device_id=chan)
-    if start is not None:
-        q = q.filter(Temperature.submit_time>start)
-    if stop is not None:
-        q = q.filter(Temperature.submit_time<stop)
-                
-    df = pd.read_sql(q.statement, q.session.bind)
-    line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=str(chan))
-    return line
+@app.route('/device', methods=["GET", "POST"])
+def device():
+    """Standard `device` form."""
+    form = DeviceForm()
+    if form.validate_on_submit():
+        print(f"Submitted {form.name} with id {form.id}")
+        existing_dev = Device.query.filter(Device.id == int(form.id.data)).first()
+        if existing_dev:
+            existing_dev.update({"name":form.name})
+            db.session.commit()
+            return redirect(url_for("updated"))
+        else:
+            dev = Device(id=int(form.id.data), 
+                         name=form.name.data,
+                         nodename="None")
+            db.session.add(dev)
+            db.session.commit()
+            return redirect(url_for("success"))
     
+    
+        
+    return render_template('device.jinja2',
+                          form=form,
+                          template="form-template"
+    )
+    
+
+@app.route("/success", methods=["GET", "POST"])
+def success():
+    """Generic success page upon form submission."""
+    return render_template(
+        "success.jinja2",
+        template="success-template"
+    )
+
+@app.route('/devices', methods=["GET"])
+def all_devices():
+    return render_template(
+        'devices.jinja2',
+        devices=Device.query.all(),
+        title="Show Devices"
+        )
