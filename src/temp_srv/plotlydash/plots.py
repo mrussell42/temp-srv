@@ -11,11 +11,13 @@ def make_plot(chan, start=None, stop=None):
             chan =  (91,92)
         else:
             chan = [chan]
-    
+    if isinstance(chan, int):
+        chan=[chan]
+        
     for ch in chan:
         line = make_line(ch, start=start, stop=stop)
         fig.add_trace(line)
-            
+    fig.update_layout(height=1000)
     
     return fig
 
@@ -30,3 +32,7 @@ def make_line(chan, start=None, stop=None):
     df = pd.read_sql(q.statement, q.session.bind)
     line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=str(chan))
     return line
+
+def get_live_values(ch):
+    q = Temperature.query.filter_by(device_id=ch).order_by(Temperature.submit_time.desc()).first()
+    return q.value

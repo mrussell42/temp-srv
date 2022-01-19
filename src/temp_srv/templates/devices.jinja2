@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 
 
+{% block styles %}
+
+<link href="{{ url_for('static', filename='dist/css/styles.css') }}" rel="stylesheet" type="text/css">
+
+{% endblock %}
+
 {% block content %}
 
   <div class="container">
