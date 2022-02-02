@@ -35,4 +35,4 @@ def make_line(chan, start=None, stop=None):
 
 def get_live_values(ch):
     q = Temperature.query.filter_by(device_id=ch).order_by(Temperature.submit_time.desc()).first()
-    return q.value
+    return round(q.value,2) if q is not None else None

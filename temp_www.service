@@ -1,0 +1,12 @@
+
+
+[Unit]
+Description=Temperature Web Server
+
+[Service]
+ExecStart=/bin/bash temp_www.sh
+WorkingDirectory=/var/www/temp_www
+User=www_t
+
+[Install]
+WantedBy=multi-user.target

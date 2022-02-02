@@ -23,6 +23,7 @@ def init_app():
         # Include our Routes
         from . import routes
         from .assets import compile_static_assets
+        db.create_all()
         # Import Dash application
         from .plotlydash.dashboard import init_dashboard
         app = init_dashboard(app)

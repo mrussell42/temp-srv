@@ -38,14 +38,15 @@ def make_layout():
     def_name = 92
     fig = make_plot(def_name, start=datetime.now() - timedelta(days=1))
     fig.update_layout(title="Last 24 Hours")
-    default_live_value = round(get_live_values(92))
+    _lv =  get_live_values(92)
+    default_live_value = _lv if _lv is not None else 0
     layout = html.Div(
         children=[
             html.H1('Walnuts Temperature', style={
                 'textAlign': 'center',
                 'color': '#7FDBFF'
                 }),
-            html.H1(default_live_value, id="live_val1"),
+            html.H1(round(default_live_value,2), id="live_val1"),
             html.Div(
                 children=[
                     dcc.Interval(
@@ -106,4 +107,4 @@ def init_callbacks(dash_app):
     Input(component_id= 'interval-component', component_property='n_intervals')
     )
     def update_live_values(reloads):
-        return f"Inside Temperature: {round(get_live_values(92),1)}"
+        return f"Inside Temperature: {get_live_values(92)}"
