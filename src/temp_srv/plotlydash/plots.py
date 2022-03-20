@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import plotly.graph_objects as go
-from temp_srv.models import Temperature
+from temp_srv.models import Temperature, Device
 import pandas as pd
 
 
@@ -23,6 +23,8 @@ def make_plot(chan, start=None, stop=None):
 
 
 def make_line(chan, start=None, stop=None):
+    dev = Device.query.get(chan)
+    
     q = Temperature.query.filter_by(device_id=chan)
     if start is not None:
         q = q.filter(Temperature.submit_time>start)
@@ -30,9 +32,13 @@ def make_line(chan, start=None, stop=None):
         q = q.filter(Temperature.submit_time<stop)
                 
     df = pd.read_sql(q.statement, q.session.bind)
-    line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=str(chan))
+    line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=dev.name)
     return line
 
-def get_live_values(ch):
-    q = Temperature.query.filter_by(device_id=ch).order_by(Temperature.submit_time.desc()).first()
-    return round(q.value,2) if q is not None else None
+def get_live_values(channels):
+    live_values = {}
+    for ch in channels:
+        q = Temperature.query.filter_by(device_id=ch).order_by(Temperature.submit_time.desc()).first()
+        if q is not None:
+            live_values[ch] = q.value
+    return live_values

@@ -7,7 +7,7 @@ from os import path, getcwd
 
 # Set up some useful strings
 name = "temp_www"
-src_gz = f'{name}-0.0.1.tar.gz'
+src_gz = f'{name}-0.0.2.tar.gz'
 here = getcwd()
 src_target = path.join(path.expanduser('~'), 'rpmbuild', 'SOURCES', src_gz)
 
