@@ -2,6 +2,7 @@
 import plotly.graph_objects as go
 from temp_srv.models import Temperature, Device
 import pandas as pd
+import pytz
 
 
 def make_plot(chan, start=None, stop=None):
@@ -30,9 +31,13 @@ def make_line(chan, start=None, stop=None):
         q = q.filter(Temperature.submit_time>start)
     if stop is not None:
         q = q.filter(Temperature.submit_time<stop)
-                
-    df = pd.read_sql(q.statement, q.session.bind)
-    line = go.Scatter(x=df.dev_datetime, y=df.value, mode='lines', name=dev.name)
+    
+    df = pd.read_sql(q.statement, q.session.bind, index_col='dev_datetime')
+    if len(df) > 0:
+        # This fails if there isn't any data in the pandas obj
+        df.index = df.index.tz_localize(pytz.utc)
+        df.index = df.index.tz_convert('Europe/London')
+    line = go.Scatter(x=df.index, y=df.value, mode='lines', name=dev.name)
     return line
 
 def get_live_values(channels):
